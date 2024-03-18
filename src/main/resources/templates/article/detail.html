@@ -1,0 +1,97 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content" class="container my-3">
+    <div class="border-bottom py-2">
+        <h2 class="fw-bold" th:text="${article.subject}"></h2>
+        <div class="d-flex justify-content-between">
+            <div class="d-flex gap-2 align-items-center">
+                <img class="rounded border" width="32px" height="32px" th:if="${article.writer.profileImage != null}"
+                    th:src="@{|/image/${article.writer.profileImage.id}|}"
+                    onerror="this.src='https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4'">
+                <img class="rounded border" width="32px" height="32px" th:unless="${true}"
+                    src="https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4">
+                <span class="text-dark fw-bold" th:if="${article.writer != null}"
+                    th:text="${article.writer.nickname}"></span>
+                <span class="text-secondary"
+                    th:text="${#temporals.format(article.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}"></span>
+            </div>
+            <div sec:authorize="isAuthenticated()"
+                th:if="${article.writer != null and #authentication.getPrincipal().getUsername() == article.writer.username}">
+                <a class="fw-bold text-decoration-none text-secondary opacity-75"
+                    th:href="@{|/article/modify/${article.id}|}">수정</a> |
+                <a class="delete fw-bold text-decoration-none text-secondary opacity-75" href="javascript:void(0);"
+                    th:data-uri="@{|/article/delete/${article.id}|}">삭제</a>
+            </div>
+        </div>
+        <div class="my-5">
+            <p class="fw-bold" th:text="${article.content}"></p>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center">
+            <a class="likes btn btn-sm border px-3" th:classappend="${isLiked ? 'btn-danger' : 'btn-outline-danger'}"
+                href="javascript:void(0);" th:data-uri="@{|/article/like/${article.id}|}">
+                <span th:text="${isLiked ? 'Liked' : 'Like'}"></span>
+                <span th:text="${#lists.size(article.likes)}"></span>
+            </a>
+        </div>
+        <div class="comment">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 th:text="|댓글 ${#lists.size(article.comments)}개|"></h3>
+                <a class="btn btn-sm btn-outline-dark">새로고침</a>
+            </div>
+
+            <div th:each="comment : ${article.comments}" class="border-top my-3 py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-3 mb-2 align-items-center">
+                        <img class="rounded border" width="28px" height="28px"
+                            th:if="${comment.writer.profileImage != null}"
+                            th:src="@{|/image/${comment.writer.profileImage.id}|}"
+                            onerror="this.src='https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4'">
+                        <img class="rounded border" width="28px" height="28px" th:unless="${true}"
+                            src="https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4">
+                        <span class="fw-bold" th:text="${comment.writer.nickname}"></span>
+                        <span class="text-secondary"
+                            th:text="${#temporals.format(comment.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}"></span>
+                    </div>
+                    <div sec:authorize="isAuthenticated()"
+                        th:if="${comment.writer != null and comment.writer.username == #authentication.getPrincipal().getUsername()}">
+                        <a class="text-decoration-none text-dark" th:href="@{|/comment/modify/${comment.id}|}">수정</a> |
+                        <a class="delete text-decoration-none text-dark" href="javascript:void(0);"
+                            th:data-uri="@{|/comment/delete/${comment.id}|}">삭제</a>
+                    </div>
+                    <script layout:fragment="script" type="text/javascript">
+                        const deleteBtnList = document.getElementsByClassName("delete");
+                        Array.from(deleteBtnList).forEach(element => {
+                            element.addEventListener("click", () => {
+                                if (confirm("정말 삭제하시겠습니까?")) {
+                                    location.href = element.dataset.uri;
+                                }
+                            })
+                        });
+                        const likeBtnList = document.getElementsByClassName("likes");
+                        Array.from(likeBtnList).forEach(element => {
+                            element.addEventListener("click", () => {
+                                location.href = element.dataset.uri;
+                            })
+                        });
+                    </script>
+                </div>
+                <div class="text-dark" th:text="${comment.content}"></div>
+            </div>
+            <form th:object="${commentForm}" th:action="@{|/comment/create/${article.id}|}" method="post">
+                <h3 class="my-3">댓글 쓰기</h3>
+                <div th:replace="~{fragments/error :: errorFragment}"></div>
+                <div class="mb-3">
+                    <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control" rows="5"
+                        placeholder="댓글을 남겨보세요"></textarea>
+                    <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control" rows="5"
+                        placeholder="댓글을 남겨보세요"></textarea>
+                </div>
+                <div class="my-2 d-flex justify-content-end gap-3">
+                    <span class="text-secondary">(0/200자)</span>
+                    <input type="submit" value="등록" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+    </div>
+
+</html>

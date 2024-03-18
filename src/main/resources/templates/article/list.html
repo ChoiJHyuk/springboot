@@ -1,0 +1,54 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content" class="container my-3">
+    <div class="border">
+        <div class="rounded bg-light bg-gradient m-3 p-2 fw-bold text-center d-flex align-items-center">
+            <img sec:authorize="isAuthenticated()" class="rounded border" width="32px" height="32px"
+                th:if="${user.profileImage != null}" th:src="@{|/image/${user.profileImage.id}|}"
+                onerror="this.src='https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4'">
+            <img sec:authorize="isAnonymous()" class="rounded border" width="32px" height="32px"
+                src="https://github.com/devsosin/sosin/assets/42627507/9e1bc120-2c56-4510-8e2e-d7aa75ea4fe4">
+            <a class="text-decoration-none text-dark w-100" th:href="@{/article/create}">무슨 생각을 하고 계신가요?</a>
+        </div>
+    </div>
+
+    <h2 class="fw-bold my-3">전체 글 보기</h2>
+
+    <div class="my-3">
+        <div class="border-bottom" th:each="article : ${paginator}">
+            <div class="d-flex">
+                <h5>
+                    <a class="fw-bold text-decoration-none text-dark" th:href="@{|/article/detail/${article.id}|}"
+                        th:text="${article.subject}"></a>
+                    <span class="text-primary fw-bold small" th:if="${#lists.size(article.comments)>0}"
+                        th:text="|[${#lists.size(article.comments)}]|"></span>
+                </h5>
+            </div>
+
+            <div class="d-flex gap-2">
+                <span class="fw-bold text-dark" th:if="${article.writer != null}"
+                    th:text="${article.writer.nickname}"></span>
+                <span class="text-secondary"
+                    th:text="${#temporals.format(article.createdAt, 'yyyy년MM월dd일 HH:mm:ss')}"></span>
+            </div>
+        </div>
+    </div>
+    <nav aria-label="Page navigation" th:if="${!paginator.isEmpty()}">
+        <ul class="pagination justify-content-center"
+            th:with="minPage=${paginator.number/10*10}, maxPage=${(paginator.number/10+1)*10}">
+            <li class="page-item">
+                <a th:class="page-link" th:href="@{|?page=${minPage-1}|}"
+                    th:classappend="${minPage == 0} ? 'disabled'">이전</a>
+            </li>
+            <li class="page-item" th:each="pageNum : ${#numbers.sequence(minPage, maxPage-1)}">
+                <a class="page-link" th:href="@{|?page=${pageNum}|}" th:text="${pageNum}"
+                    th:classappend="${pageNum == paginator.number} ? 'active'"></a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" th:href="@{|?page=${maxPage}|}"
+                    th:classappend="${maxPage > paginator.totalPages} ? 'disabled'">다음</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+</html>
